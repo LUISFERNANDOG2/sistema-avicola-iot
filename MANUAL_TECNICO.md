@@ -115,8 +115,20 @@ El sistema implementa un esquema de seguridad robusto para proteger el acceso a 
     *   Al hacer login, se verifica con `check_password_hash`.
 3.  **Gestión de Sesiones**:
     *   Se utiliza `LoginManager` de Flask-Login.
-    *   Protección de rutas mediante decorador `@login_required`. Si un usuario no autenticado intenta entrar a `/dashboard`, es redirigido forzosamente a `/login`.
-    *   Protección CSRF (Cross-Site Request Forgery) habilitada implícitamente en formularios.
+    *   Protección de rutas mediante decorador `@login_required`.
+    *   Protección CSRF habilitada implícitamente en formularios.
+
+**Medidas de Protección Activa:**
+1.  **Rate Limiting (Anti-Fuerza Bruta)**:
+    *   Implementado con `Flask-Limiter`.
+    *   **Login**: Limitado a 10 intentos por minuto por IP.
+    *   **Registro**: Limitado a 5 cuentas por hora por IP (Anti-Spam).
+    *   **API General**: Límite global de 200 peticiones diarias.
+2.  **Cabeceras de Seguridad HTTP (Security Headers)**:
+    Se inyectan automáticamente en cada respuesta del servidor:
+    *   `X-Content-Type-Options: nosniff`: Evita ataques de confusión de tipo MIME.
+    *   `X-Frame-Options: SAMEORIGIN`: Previene ataques de "Clickjacking" (no se puede embeber la web en un iframe externo).
+    *   `X-XSS-Protection: 1; mode=block`: Filtro nativo contra Cross-Site Scripting.
 
 ### 5.2 Lógica de Umbrales Dinámicos
 La detección de anomalías no está "hardcodeada" en el código, sino que es configurada dinámicamente en la base de datos para permitir ajustes en tiempo de ejecución.

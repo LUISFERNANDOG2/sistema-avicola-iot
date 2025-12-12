@@ -12,9 +12,28 @@ import requests
 from werkzeug.security import generate_password_hash, check_password_hash
 
 
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+
 load_dotenv()
 app = Flask(__name__)
 CORS(app)
+
+# Security: Rate Limiting
+limiter = Limiter(
+    get_remote_address,
+    app=app,
+    default_limits=["200 per day", "50 per hour"],
+    storage_uri="memory://"
+)
+
+@app.after_request
+def add_security_headers(response):
+    """Add security headers to every response"""
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    response.headers['X-Frame-Options'] = 'SAMEORIGIN'
+    response.headers['X-XSS-Protection'] = '1; mode=block'
+    return response
 
 # DB PostgreSQL configuration
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
@@ -357,6 +376,7 @@ def historical_data():
 
 # User Management Endpoints
 @app.route('/api/register', methods=['POST'])
+@limiter.limit("5 per hour")  # Restrict registration to prevent spam
 def register_user():
     try:
         data = request.get_json()
@@ -378,6 +398,7 @@ def register_user():
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/login', methods=['POST'])
+@limiter.limit("10 per minute")  # Brute-force protection
 def login_user():
     try:
         data = request.get_json()
