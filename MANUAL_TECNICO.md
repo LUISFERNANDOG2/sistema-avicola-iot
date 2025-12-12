@@ -194,6 +194,11 @@ El sistema está optimizado para funcionar en una **Raspberry Pi 4 (o superior)*
     *   IP de la Raspberry: `http://192.168.X.X:5001`
     *   IP Local (si usa pantalla conectada): `http://localhost:5001`
 
+5.  **Apagar el sistema (Raspberry)**:
+    ```bash
+    docker-compose -f docker-compose.raspberry.yml down
+    ```
+
 ### 6.3 Configuración de "Punto de Acceso" (Access Point)
 Si no hay router en la granja, la Raspberry Pi puede generar su propia red WiFi para que los módulos ESP32 se conecten a ella.
 1.  Utilice scripts como `raspap` o configure `hostapd`.
