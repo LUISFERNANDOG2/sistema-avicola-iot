@@ -4,25 +4,32 @@ Este proyecto es una solución integral IoT (Internet of Things) diseñada para 
 
 ---
 
-## 📸 Capturas de Pantalla (Screenshots)
+## 📸 Galería del Sistema
+<details>
+<summary><b>� Ver Interfaz de Usuario</b></summary>
 
-### 📊 Monitoreo y Dashboard
-| Dashboard Principal | Vista de Alertas | Configuración de Umbrales |
-|:---:|:---:|:---:|
-| ![Dashboard](docs/screenshots/dashboard.png) | ![Alertas](docs/screenshots/Alertas.png) | ![Umbrales](docs/screenshots/Umbrales.png) |
-| *Vista en tiempo real* | *Gestión de incidentes* | *Ajuste de límites* |
+<br>
 
-### 📈 Análisis Histórico
-| Gráfica de Tendencias | Reporte Detallado |
-|:---:|:---:|
-| ![Histórico 1](docs/screenshots/DatosHistoricos1.png) | ![Histórico 2](docs/screenshots/DatosHistoricos2.png) |
-| *Visualización gráfica* | *Tabla de datos* |
+**Panel de Control & Monitoreo**
+<p align="center">
+  <img src="docs/screenshots/dashboard.png" width="45%" alt="Dashboard">
+  <img src="docs/screenshots/Alertas.png" width="45%" alt="Alertas">
+</p>
 
-### 👤 Gestión de Acceso
-| Login | Perfil de Usuario |
-|:---:|:---:|
-| ![Login](docs/screenshots/login.png) | ![Perfil](docs/screenshots/EditarPerfil.png) |
-| *Acceso seguro* | *Edición de cuenta* |
+**Análisis de Datos**
+<p align="center">
+  <img src="docs/screenshots/DatosHistoricos1.png" width="45%" alt="Histórico">
+  <img src="docs/screenshots/DatosHistoricos2.png" width="45%" alt="Tabla">
+</p>
+
+**Configuración & Acceso**
+<p align="center">
+  <img src="docs/screenshots/Umbrales.png" width="30%" alt="Umbrales">
+  <img src="docs/screenshots/login.png" width="30%" alt="Login">
+  <img src="docs/screenshots/EditarPerfil.png" width="30%" alt="Perfil">
+</p>
+
+</details>
 
 ---
 
