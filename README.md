@@ -4,6 +4,28 @@ Este proyecto es una solución integral IoT (Internet of Things) diseñada para 
 
 ---
 
+## 📸 Capturas de Pantalla (Screenshots)
+
+### 📊 Monitoreo y Dashboard
+| Dashboard Principal | Vista de Alertas | Configuración de Umbrales |
+|:---:|:---:|:---:|
+| ![Dashboard](docs/screenshots/dashboard.png) | ![Alertas](docs/screenshots/Alertas.png) | ![Umbrales](docs/screenshots/Umbrales.png) |
+| *Vista en tiempo real* | *Gestión de incidentes* | *Ajuste de límites* |
+
+### 📈 Análisis Histórico
+| Gráfica de Tendencias | Reporte Detallado |
+|:---:|:---:|
+| ![Histórico 1](docs/screenshots/DatosHistoricos1.png) | ![Histórico 2](docs/screenshots/DatosHistoricos2.png) |
+| *Visualización gráfica* | *Tabla de datos* |
+
+### 👤 Gestión de Acceso
+| Login | Perfil de Usuario |
+|:---:|:---:|
+| ![Login](docs/screenshots/login.png) | ![Perfil](docs/screenshots/EditarPerfil.png) |
+| *Acceso seguro* | *Edición de cuenta* |
+
+---
+
 ## 🚀 Características Principales
 
 *   **📊 Dashboard en Tiempo Real**: Visualización instantánea de lecturas de sensores con indicadores de estado (Normal, Advertencia, Peligro).

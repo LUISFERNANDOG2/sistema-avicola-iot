@@ -1,9 +1,43 @@
+# Version Control
+.git
+.gitignore
+**/.git
+**/.gitignore
+
+# Environment & Secrets
+.env
+.env.*
+!.env.example
+!.env.docker
+
+# Python / Virtualenv
 __pycache__
 *.pyc
 *.pyo
 *.pyd
-.git
+venv
 .venv
-venv/
-.env
-.env.local
+env
+
+# IDEs
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS
+desktop.ini
+Thumbs.db
+.DS_Store
+
+# Large Data & Models
+ML/
+*.csv
+*.xlsx
+*.sql
+*.ipynb
+
+# Documentation
+docs/
+MANUAL_TECNICO.md
+MANUAL_USUARIO.md
