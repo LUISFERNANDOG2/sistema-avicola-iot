@@ -24,6 +24,7 @@ Este sistema le permite monitorear el bienestar de sus aves las 24 horas del dí
 *   **🌡️ Temperatura (°C)**: Control térmico. Valores muy altos causan estrés calórico; muy bajos, hipotermia.
 *   **💧 Humedad (%)**: Exceso de humedad favorece bacterias y hongos.
 *   **💨 CO2 (Dióxido de Carbono)**: Indica mala ventilación. Valores altos causan letargo.
+*   **🔥 CO (Monóxido de Carbono)**: Gas inodoro pero mortal, producto de mala combustión en calentadores.
 *   **☠️ NH3 (Amoniaco)**: Gas tóxico producido por las heces. Muy peligroso para los pulmones de las aves incluso en niveles bajos.
 
 ---
