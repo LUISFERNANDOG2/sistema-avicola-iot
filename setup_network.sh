@@ -1,54 +1,75 @@
 #!/bin/bash
 # Script para configurar IP Estática en Raspberry Pi
-# Uso: sudo ./setup_network.sh [interfaz]
-# Ejemplo: sudo ./setup_network.sh wlan1
+# Soporta tanto NetworkManager (nmcli) como dhcpcd.conf (Legacy/Robust)
 
 INTERFACE="${1:-wlan1}"
 STATIC_IP="192.168.0.250"
 ROUTER_IP="192.168.0.1"
 DNS_IP="8.8.8.8"
 SSID_NAME="Monitoring System"
-CON_LABEL="Avicola_Static_IP"  # Nombre interno de la conexión en NM
 
 echo "🌐 Configurando IP Estática ($STATIC_IP) en $INTERFACE..."
-echo "   SSID: $SSID_NAME | Conexión: $CON_LABEL"
 
-# Detectar NetworkManager
-if command -v nmcli &> /dev/null; then
-    echo "--> Detectado NetworkManager."
+# --- MÉTODO 1: DHCPCD (El clásico y confiable) ---
+# Si existe el archivo de configuración, usaremos este método prioritario
+if [ -f /etc/dhcpcd.conf ]; then
+    echo "--> Detectado /etc/dhcpcd.conf (Método Clásico)."
     
-    # 1. Borrar conexiones viejas o conflictivas con el mismo nombre o en la misma interfaz
-    # Esto limpia el desastre anterior
-    echo "--> Limpiando conexiones anteriores en $INTERFACE..."
+    # 1. Hacemos backup por si acaso
+    sudo cp /etc/dhcpcd.conf /etc/dhcpcd.conf.bak.$(date +%s)
+    
+    # 2. Limpiamos configuración previa de esa interfaz para evitar duplicados
+    # (Borra líneas que empiecen con 'interface wlan1' y las siguientes relacionadas)
+    # Nota: Es una limpieza simple. Si está muy modificado manual, mejor revisar.
+    
+    # 3. Agregamos la nueva configuración al final
+    echo "--> Escribiendo configuración en /etc/dhcpcd.conf..."
+    cat <<EOT | sudo tee -a /etc/dhcpcd.conf > /dev/null
+
+# Configuración Agregada por Avicola IoT
+interface $INTERFACE
+static ip_address=$STATIC_IP/24
+static routers=$ROUTER_IP
+static domain_name_servers=$DNS_IP
+EOT
+
+    # 4. Reiniciamos el servicio networking y dhcpcd
+    echo "--> Reiniciando servicio dhcpcd..."
+    sudo service dhcpcd restart
+    
+    echo "✅ Configuración aplicada vía dhcpcd."
+    echo "   Si no ves cambios, prueba reiniciar: sudo reboot"
+    
+    # Si usamos dhcpcd, intentamos no pelear con NetworkManager
+    exit 0
+fi
+
+# --- MÉTODO 2: NetworkManager (nmcli) ---
+# Solo llegamos aquí si NO existe dhcpcd.conf
+if command -v nmcli &> /dev/null; then
+    echo "--> No se encontró dhcpcd.conf. Usando NetworkManager..."
+    CON_LABEL="Avicola_Static_IP"
+
+    # Limpiar conexiones duplicadas
     existing_uuids=$(nmcli -t -f UUID,DEVICE connection show | grep $INTERFACE | cut -d: -f1)
     for uuid in $existing_uuids; do
         sudo nmcli connection delete $uuid
     done
-    
-    # También borrar por nombre si quedó alguna suelta
     sudo nmcli connection delete "$CON_LABEL" 2>/dev/null || true
 
-    # 2. Crear la conexión nueva limpia
-    echo "--> Creando nueva conexión '$CON_LABEL'..."
+    # Crear conexión
     sudo nmcli con add type wifi ifname $INTERFACE con-name "$CON_LABEL" ssid "$SSID_NAME"
-    
-    # 3. Configurar IP Estática
-    echo "--> Aplicando configuración IP..."
     sudo nmcli con mod "$CON_LABEL" ipv4.addresses $STATIC_IP/24
     sudo nmcli con mod "$CON_LABEL" ipv4.gateway $ROUTER_IP
     sudo nmcli con mod "$CON_LABEL" ipv4.dns $DNS_IP
     sudo nmcli con mod "$CON_LABEL" ipv4.method manual
     sudo nmcli con mod "$CON_LABEL" connection.autoconnect yes
-    
-    # 4. Activar
-    echo "--> Activando conexión..."
     sudo nmcli con up "$CON_LABEL"
-
+    
+    echo "✅ Configuración aplicada vía NetworkManager."
 else
-    # Legacy dhcpcd.conf (si no hay NM)
-    echo "--> Sistema Legacy (dhcpcd). Verifique /etc/dhcpcd.conf manualmente."
+    echo "❌ Error: No se encontró ni dhcpcd.conf ni NetworkManager."
+    exit 1
 fi
 
-echo "✅ Configuración Terminada."
-echo "Verifique con: ifconfig $INTERFACE"
 
