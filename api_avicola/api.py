@@ -253,6 +253,7 @@ def get_lecturas():
 
 # Live data endpoint for dashboard
 @app.route('/api/live-data', methods=['GET'])
+@limiter.exempt  # Exempt from rate limiting because it's polled frequently
 def get_live_data():
     """Endpoint para obtener datos en tiempo real (formato objeto)"""
     try:
