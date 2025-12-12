@@ -184,6 +184,7 @@ def check_and_create_alerts():
 
 # MQTT endpoint
 @app.route('/lecturas', methods=['POST'])
+@limiter.exempt
 def insert_lectura():
     """Endpoint MQTT insertions"""
     try:
@@ -284,6 +285,7 @@ def get_live_data():
 
 
 @app.route('/api/historical')
+@limiter.exempt
 def historical_data():
     try:
         from datetime import datetime, timedelta
@@ -562,6 +564,7 @@ def get_historical_data(range, from_date=None, to_date=None):
 
 # Alerts API endpoints
 @app.route('/api/alerts', methods=['GET'])
+@limiter.exempt
 def get_alerts():
     """Get all alerts with filtering options"""
     try:
