@@ -165,10 +165,22 @@ El sistema está optimizado para funcionar en una **Raspberry Pi 4 (o superior)*
 
 ### 6.1 Requisitos Previos
 *   Raspberry Pi con **Raspberry Pi OS (64-bits)** instalado.
-*   Conexión de red local (Ethernet o WiFi creado por la misma RPi en modo Access Point).
 *   `git` y `docker` instalados.
 
-### 6.2 Instalación Paso a Paso
+### 6.2 Configuración de Red (IP Estática) 🌐
+Es crucial que la Raspberry tenga una IP fija para que el Dashboard siempre sea accesible.
+
+1.  Dar permisos y ejecutar el script de red incluido:
+    ```bash
+    chmod +x setup_network.sh
+    # Si usa cable Ethernet:
+    sudo ./setup_network.sh eth0
+    # Si usa WiFi (recomendado):
+    sudo ./setup_network.sh wlan0
+    ```
+    *Esto fijará la IP a `192.168.0.100`.*
+
+### 6.3 Instalación Paso a Paso
 1.  **Clonar el Repositorio en la RPi**:
     ```bash
     git clone https://github.com/LUISFERNANDOG2/sistema-avicola-iot.git
