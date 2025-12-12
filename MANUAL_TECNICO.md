@@ -213,5 +213,22 @@ Para asegurar que el sistema arranque automáticamente si se va la luz:
     ```
     *Esto habilitará el servicio Docker en el arranque del sistema operativo y configurará la política de reinicio de los contenedores a `always`.*
 
+### 6.5 Mantenimiento de Base de Datos
+Si necesita inspeccionar los datos manualmente dentro del contenedor de base de datos:
+
+1.  **Entrar al contenedor PostgreSQL**:
+    ```bash
+    docker exec -it sistema-avicola-iot-db-1 psql -U avicola_user -d avicola_db
+    ```
+    *(Nota: El nombre del contenedor puede variar, use `docker ps` para verificarlo)*
+
+2.  **Comandos útiles SQL**:
+    ```sql
+    \dt                  -- Listar tablas
+    SELECT * FROM users; -- Ver usuarios registrados
+    SELECT count(*) FROM lecturas; -- Contar total de registros
+    \q                   -- Salir
+    ```
+
 ## 7. Despliegue en Servidor Cloud (Opcional)
 Para despliegue en AWS/Azure...
