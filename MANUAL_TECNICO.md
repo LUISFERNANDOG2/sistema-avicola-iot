@@ -200,5 +200,18 @@ Si no hay router en la granja, la Raspberry Pi puede generar su propia red WiFi 
 2.  Nombre de red recomendado: `GranjaAvicola_WiFi`.
 3.  Configure los módulos ESP32 con esa SSID y contraseña.
 
+### 6.4 Configuración de Autoinicio (Anti-Apagones) 💡
+Para asegurar que el sistema arranque automáticamente si se va la luz:
+
+1.  Otorgue permisos de ejecución al script incluido:
+    ```bash
+    chmod +x setup_autostart.sh
+    ```
+2.  Ejecute el script de configuración:
+    ```bash
+    ./setup_autostart.sh
+    ```
+    *Esto habilitará el servicio Docker en el arranque del sistema operativo y configurará la política de reinicio de los contenedores a `always`.*
+
 ## 7. Despliegue en Servidor Cloud (Opcional)
 Para despliegue en AWS/Azure...
