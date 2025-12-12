@@ -3,8 +3,8 @@
 # Uso: sudo ./setup_network.sh [interfaz]
 # Ejemplo: sudo ./setup_network.sh wlan0
 
-INTERFACE="${1:-wlan0}" # Por defecto usa wlan0 si no se especifica
-STATIC_IP="192.168.0.100"
+INTERFACE="${1:-wlan1}" # Por defecto usa wlan1 si no se especifica
+STATIC_IP="192.168.0.250"
 ROUTER_IP="192.168.0.1"
 DNS_IP="8.8.8.8"
 

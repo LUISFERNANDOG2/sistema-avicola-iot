@@ -176,9 +176,9 @@ Es crucial que la Raspberry tenga una IP fija para que el Dashboard siempre sea 
     # Si usa cable Ethernet:
     sudo ./setup_network.sh eth0
     # Si usa WiFi (recomendado):
-    sudo ./setup_network.sh wlan0
+    sudo ./setup_network.sh wlan1
     ```
-    *Esto fijará la IP a `192.168.0.100`.*
+    *Esto fijará la IP a `192.168.0.250` (rango alto para evitar conflictos).*
 
 ### 6.3 Instalación Paso a Paso
 1.  **Clonar el Repositorio en la RPi**:
