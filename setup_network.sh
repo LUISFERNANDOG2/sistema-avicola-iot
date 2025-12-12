@@ -1,59 +1,54 @@
 #!/bin/bash
 # Script para configurar IP Estática en Raspberry Pi
 # Uso: sudo ./setup_network.sh [interfaz]
-# Ejemplo: sudo ./setup_network.sh wlan0
+# Ejemplo: sudo ./setup_network.sh wlan1
 
-INTERFACE="${1:-wlan1}" # Por defecto usa wlan1 si no se especifica
+INTERFACE="${1:-wlan1}"
 STATIC_IP="192.168.0.250"
 ROUTER_IP="192.168.0.1"
 DNS_IP="8.8.8.8"
+SSID_NAME="Monitoring System"
+CON_LABEL="Avicola_Static_IP"  # Nombre interno de la conexión en NM
 
 echo "🌐 Configurando IP Estática ($STATIC_IP) en $INTERFACE..."
+echo "   SSID: $SSID_NAME | Conexión: $CON_LABEL"
 
-# Detectar si usamos NetworkManager (Raspberry Pi OS Bookworm y nuevos)
+# Detectar NetworkManager
 if command -v nmcli &> /dev/null; then
-    echo "--> Detectado NetworkManager. Usando nmcli..."
+    echo "--> Detectado NetworkManager."
     
-    # Buscar la conexión activa para esa interfaz
-    CON_NAME=$(nmcli -t -f NAME,DEVICE connection show --active | grep $INTERFACE | cut -d: -f1)
+    # 1. Borrar conexiones viejas o conflictivas con el mismo nombre o en la misma interfaz
+    # Esto limpia el desastre anterior
+    echo "--> Limpiando conexiones anteriores en $INTERFACE..."
+    existing_uuids=$(nmcli -t -f UUID,DEVICE connection show | grep $INTERFACE | cut -d: -f1)
+    for uuid in $existing_uuids; do
+        sudo nmcli connection delete $uuid
+    done
     
-    if [ -z "$CON_NAME" ]; then
-        echo "⚠️ No se encontró conexión activa en $INTERFACE. Creando una nueva..."
-        nmcli con add type wifi ifname $INTERFACE con-name "Static_WiFi" ssid "GranjaAvicola_WiFi"
-        CON_NAME="Static_WiFi"
-    fi
+    # También borrar por nombre si quedó alguna suelta
+    sudo nmcli connection delete "$CON_LABEL" 2>/dev/null || true
 
-    echo "--> Modificando conexión: $CON_NAME"
-    sudo nmcli con mod "$CON_NAME" ipv4.addresses $STATIC_IP/24
-    sudo nmcli con mod "$CON_NAME" ipv4.gateway $ROUTER_IP
-    sudo nmcli con mod "$CON_NAME" ipv4.dns $DNS_IP
-    sudo nmcli con mod "$CON_NAME" ipv4.method manual
+    # 2. Crear la conexión nueva limpia
+    echo "--> Creando nueva conexión '$CON_LABEL'..."
+    sudo nmcli con add type wifi ifname $INTERFACE con-name "$CON_LABEL" ssid "$SSID_NAME"
     
-    echo "--> Reiniciando interfaz..."
-    sudo nmcli con down "$CON_NAME" && sudo nmcli con up "$CON_NAME"
+    # 3. Configurar IP Estática
+    echo "--> Aplicando configuración IP..."
+    sudo nmcli con mod "$CON_LABEL" ipv4.addresses $STATIC_IP/24
+    sudo nmcli con mod "$CON_LABEL" ipv4.gateway $ROUTER_IP
+    sudo nmcli con mod "$CON_LABEL" ipv4.dns $DNS_IP
+    sudo nmcli con mod "$CON_LABEL" ipv4.method manual
+    sudo nmcli con mod "$CON_LABEL" connection.autoconnect yes
+    
+    # 4. Activar
+    echo "--> Activando conexión..."
+    sudo nmcli con up "$CON_LABEL"
 
 else
-    # Método Legacy (dhcpcd.conf) para sistemas viejos (Bullseye y anteriores)
-    echo "--> Detectado sistema Legacy. Usando /etc/dhcpcd.conf..."
-    
-    CONFIG_LINE="interface $INTERFACE"
-    
-    if grep -q "$CONFIG_LINE" /etc/dhcpcd.conf; then
-        echo "⚠️ Ya existe configuración para $INTERFACE en dhcpcd.conf. Por favor edítelo manualmente para evitar conflictos."
-    else
-        echo "--> Escribiendo configuración en /etc/dhcpcd.conf..."
-        sudo tee -a /etc/dhcpcd.conf > /dev/null <<EOT
-
-# Configuración Avicola IoT
-interface $INTERFACE
-static ip_address=$STATIC_IP/24
-static routers=$ROUTER_IP
-static domain_name_servers=$DNS_IP
-EOT
-        echo "--> Reiniciando servicio de red..."
-        sudo service dhcpcd restart
-    fi
+    # Legacy dhcpcd.conf (si no hay NM)
+    echo "--> Sistema Legacy (dhcpcd). Verifique /etc/dhcpcd.conf manualmente."
 fi
 
 echo "✅ Configuración Terminada."
-echo "Prueba con: ping $ROUTER_IP"
+echo "Verifique con: ifconfig $INTERFACE"
+
