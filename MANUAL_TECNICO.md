@@ -102,14 +102,51 @@ erDiagram
 *   **GET** `/api/historical`: Retorna series de tiempo para gráficos.
     *   *Params*: `range` (1h, 24h, 7d), `house` (Módulo).
 
-## 5. Lógica de Negocio
+## 5. Lógica de Negocio Detallada
 
-### 5.1 Sistema de Alertas y Throttling
-Para evitar saturación de notificaciones, el sistema implementa una lógica de **Debounce (Throttling)**:
-1.  Al recibir una lectura, se compara contra la tabla `umbrales`.
-2.  Si supera un límite, se busca la **última alerta** del mismo tipo y módulo.
-3.  **Regla de 60 segundos**: Si existe una alerta previa creada hace menos de 60 segundos, la nueva se descarta.
-4.  Si han pasado >60s, se crea una nueva alerta en estado `active`.
+### 5.1 Seguridad y Autenticación (Login)
+El sistema implementa un esquema de seguridad robusto para proteger el acceso a los datos sensibles.
+
+**Flujo de Autenticación:**
+1.  **Modelo de Usuario (`User`)**: Hereda de `flask_login.UserMixin` para integración nativa con el gestor de sesiones.
+2.  **Hashing de Contraseñas**:
+    *   **NUNCA** se almacenan contraseñas en texto plano.
+    *   Se utiliza `werkzeug.security.generate_password_hash` con el algoritmo PBKDF2-SHA256 y "salting" automático.
+    *   Al hacer login, se verifica con `check_password_hash`.
+3.  **Gestión de Sesiones**:
+    *   Se utiliza `LoginManager` de Flask-Login.
+    *   Protección de rutas mediante decorador `@login_required`. Si un usuario no autenticado intenta entrar a `/dashboard`, es redirigido forzosamente a `/login`.
+    *   Protección CSRF (Cross-Site Request Forgery) habilitada implícitamente en formularios.
+
+### 5.2 Lógica de Umbrales Dinámicos
+La detección de anomalías no está "hardcodeada" en el código, sino que es configurada dinámicamente en la base de datos para permitir ajustes en tiempo de ejecución.
+
+**Estructura del Umbral:**
+Cada variable (ej: Temperatura) tiene 3 niveles de severidad definidos en la tabla `umbrales`:
+*   `valor_medio`: Punto de referencia ideal (Informativo).
+*   `valor_alto`: Primer nivel de alarma -> Genera alerta **WARNING** (🟡).
+*   `valor_grave`: Nivel crítico -> Genera alerta **CRITICAL** (🔴).
+
+**Algoritmo de Evaluación (Pseudocódigo):**
+```python
+Para cada nueva lectura recibida del sensor:
+    1. Obtener configuración de umbrales desde DB.
+    2. Comparar valor actual:
+       SI valor >= umbral.valor_grave:
+           Prioridad = "CRITICAL"
+           Mensaje = "Peligro: Valor X superó límite grave"
+       SINO SI valor >= umbral.valor_alto:
+           Prioridad = "WARNING"
+           Mensaje = "Atención: Valor X alto"
+       SINO:
+           Ignorar (Estado Normal)
+    
+    3. (Paso Throttling) Verificar si hubo una alerta idéntica hace < 60s.
+    4. SI pasa validaciones -> INSERT en tabla 'alertas'.
+```
+
+### 5.3 Sistema de Throttling (Anti-Spam)
+Para evitar saturación de notificaciones...
 
 ## 6. Despliegue e Instalación
 El proyecto incluye archivos `Dockerfile` para cada servicio. Para desplegar en producción:
