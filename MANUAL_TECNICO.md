@@ -16,44 +16,76 @@ graph LR
     C -->|JSON| E
 ```
 
-### 2.2 Tecnologías Utilizadas
-*   **Lenguaje**: Python 3.9+
-*   **Framework Web**: Flask
-*   **Base de Datos**: PostgreSQL / SQLite (Entornos de desarrollo)
-*   **Protocolo IoT**: MQTT (Mosquitto)
-*   **Frontend**: HTML5, CSS3, JavaScript (Vanilla), Bootstrap 5
-*   **Contenedores**: Docker & Docker Compose
+### 2.2 Tecnologías Utilizadas (Tech Stack)
 
-## 3. Diccionario de Datos
+| Área | Stack Tecnológico |
+| :--- | :--- |
+| **Backend Core** | ![Python](https://img.shields.io/badge/Python-3.9+-3776AB?style=for-the-badge&logo=python&logoColor=white) ![Flask](https://img.shields.io/badge/Flask-Microframework-000000?style=for-the-badge&logo=flask&logoColor=white) ![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-ORM-D70206?style=for-the-badge&logo=sqlalchemy&logoColor=white) |
+| **Frontend UI** | ![HTML5](https://img.shields.io/badge/HTML5-Structure-E34F26?style=for-the-badge&logo=html5&logoColor=white) ![Bootstrap 5](https://img.shields.io/badge/Bootstrap-5.3-7952B3?style=for-the-badge&logo=bootstrap&logoColor=white) ![JavaScript](https://img.shields.io/badge/JavaScript-ES6+-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black) |
+| **IoT & Protocolos** | ![MQTT](https://img.shields.io/badge/MQTT-Mosquitto-3C5280?style=for-the-badge&logo=eclipse&logoColor=white) ![ESP32](https://img.shields.io/badge/Hardware-ESP32-E7352C?style=for-the-badge&logo=espressif&logoColor=white) |
+| **Base de Datos** | ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Relational_DB-336791?style=for-the-badge&logo=postgresql&logoColor=white) |
+| **Infraestructura** | ![Docker](https://img.shields.io/badge/Docker-Containers-2496ED?style=for-the-badge&logo=docker&logoColor=white) ![Git](https://img.shields.io/badge/Git-Version_Control-F05032?style=for-the-badge&logo=git&logoColor=white) |
 
-### 3.1 Tabla: `users` (Usuarios)
-Almacena la información de acceso y perfil de los administradores y operarios.
-| Campo | Tipo | Descripción |
-| :--- | :--- | :--- |
-| `id` | Integer (PK) | Identificador único |
-| `username` | String(80) | Nombre de usuario para login |
-| `password_hash` | String(256) | Hash seguro de contraseña |
-| `role` | String(50) | Rol (Admin, User) |
+## 3. Modelo de Datos (Diagrama Entidad-Relación)
 
-### 3.2 Tabla: `lecturas` (Datos de Sensores)
-Registro histórico de todas las mediciones enviadas por los módulos.
-| Campo | Tipo | Descripción |
-| :--- | :--- | :--- |
-| `id_lectura` | String (PK) | UUID generado por el sensor |
-| `modulo` | String | Identificador del módulo (ej: "M1") |
-| `hora` | DateTime | Timestamp de la medición |
-| `temperatura` | Float | Valor en °C |
-| `humedad` | Float | Valor en % |
-| `co`, `co2`, `amoniaco` | Float | Valores en ppm |
+A continuación se presenta el esquema relacional de la base de datos diseñado para garantizar integridad y rapidez en consultas de series de tiempo.
 
-### 3.3 Tabla: `alertas` (Sistema de Alertas)
-Registro de eventos críticos generados automáticamente.
-| Campo | Tipo | Descripción |
-| :--- | :--- | :--- |
-| `tipo` | String | Variable afectada (temperatura, etc.) |
-| `prioridad` | String | `critical`, `warning`, `info` |
-| `estado` | String | `active`, `acknowledged`, `resolved` |
-| `umbral` | Float | Valor límite que detonó la alerta |
+```mermaid
+erDiagram
+    %% Entidades Principales
+    USERS {
+        Integer id PK
+        String username "Unique"
+        String password_hash
+        String role "Admin/User"
+        String full_name
+        String profile_image
+    }
+
+    LECTURAS {
+        String id_lectura PK "UUID"
+        String modulo "FK"
+        DateTime hora "Timestamp"
+        Float temperatura
+        Float humedad
+        Float co
+        Float co2
+        Float amoniaco
+    }
+
+    ALERTAS {
+        Integer id PK
+        String tipo "Variable"
+        String prioridad "Critical/Warning"
+        String mensaje
+        String modulo
+        Float valor_actual
+        Float umbral
+        String estado "Active/Resolved"
+        DateTime timestamp
+        DateTime timestamp_resuelto
+    }
+
+    UMBRALES {
+        Integer id PK
+        String variable "Unique"
+        Float valor_medio
+        Float valor_alto
+        Float valor_grave
+    }
+
+    %% Relaciones (Lógicas)
+    UMBRALES ||--o{ ALERTAS : "Define límites para"
+    LECTURAS ||--o{ ALERTAS : "Genera"
+    USERS ||--o{ ALERTAS : "Gestiona/Resuelve"
+```
+
+### Descripción de Tablas
+
+*   **USERS**: Gestión de acceso, roles y perfiles de operarios.
+*   **LECTURAS**: Tabla transaccional de alto volumen. Almacena cada "latido" (heartbeat) enviado por los sensores IoT.
+*   **ALERTAS**: Bitácora de incidencias. Implementa lógica de estados (Activo -> Reconocido -> Resuelto) para trazabilidad.
+*   **UMBRALES**: Tabla de configuración dinámica. Permite ajustar la sensibilidad del sistema sin tocar código.
 
 ## 4. Documentación de API (Endpoints Principales)
 
