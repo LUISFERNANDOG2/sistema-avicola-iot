@@ -1,0 +1,26 @@
+# Simplified for ARM64
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Instalar dependencias del sistema según arquitectura
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY run_api.py .
+
+# Copiar requirements e instalar librerías Python
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copiar código del proyecto
+COPY api_avicola/ ./api_avicola/
+COPY .env.docker .env
+
+
+# Exponer puerto
+EXPOSE 5000
+
+# Comando para iniciar la API
+CMD ["python", "run_api.py"]

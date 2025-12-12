@@ -1,0 +1,16 @@
+# Simplified for ARM64
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Copiar requirements e instalar librerías Python
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copiar código del proyecto
+COPY api_avicola/ ./api_avicola/
+COPY run_mqtt.py .
+COPY .env.docker .env
+
+# Comando para iniciar el MQTT Subscriber
+CMD ["python", "run_mqtt.py"]

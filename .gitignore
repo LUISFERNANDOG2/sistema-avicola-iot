@@ -1,0 +1,56 @@
+# Python internals
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual Environments
+venv/
+.venv/
+env/
+
+# Environment Variables (IMPORTANT: Never upload secrets)
+.env
+.env.local
+.env.*.local
+# Keep .env.docker or .env.example if they don't contain real secrets
+# If .env.docker has real passwords, uncomment the next line:
+# .env.docker
+
+# IDE settings
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS System files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Database
+*.sqlite3
+*.db
+instance/
+postgres_data/
+
+# Logs
+*.log
+debug.log
+
+# Large Data & Datasets (ML Folder)
+# Prevent uploading massive dataset files to GitHub
+ML/*.csv
+ML/*.xlsx
+ML/*.sql
+ML/*.json
+!ML/readme.md 
+
+# Byte-compiled / optimized / DLL files
+CVS/
+*.dll
+*.so
+*.dylib
+
+# MyPy
+.mypy_cache/

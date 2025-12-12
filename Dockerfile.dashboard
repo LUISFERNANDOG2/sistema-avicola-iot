@@ -1,0 +1,24 @@
+# Simplified for ARM64
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Instalar dependencias del sistema según arquitectura
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copiar requirements e instalar librerías Python
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copiar código del proyecto
+COPY dashboard_avicola/ ./dashboard_avicola/
+COPY run_dashboard.py .
+COPY .env.docker .env
+
+# Exponer puerto
+EXPOSE 5001
+
+# Comando para iniciar el Dashboard
+CMD ["python", "run_dashboard.py"]
