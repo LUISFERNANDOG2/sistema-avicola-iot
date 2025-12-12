@@ -11,7 +11,7 @@ services:
     ports:
       - "5432:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U avicola_user -d avicola_db"]
+      test: [ "CMD-SHELL", "pg_isready -U avicola_user -d avicola_db" ]
       interval: 3s
       timeout: 3s
       retries: 10
@@ -23,14 +23,7 @@ services:
     ports:
       - "1883:1883"
     command: >
-      sh -c "
-      echo 'listener 1883' > /mosquitto/config/mosquitto.conf &&
-      echo 'allow_anonymous true' >> /mosquitto/config/mosquitto.conf &&
-      echo 'persistence true' >> /mosquitto/config/mosquitto.conf &&
-      echo 'persistence_location /mosquitto/data/' >> /mosquitto/config/mosquitto.conf &&
-      echo 'log_dest stdout' >> /mosquitto/config/mosquitto.conf &&
-      /usr/sbin/mosquitto -c /mosquitto/config/mosquitto.conf
-      "
+      sh -c " echo 'listener 1883' > /mosquitto/config/mosquitto.conf && echo 'allow_anonymous true' >> /mosquitto/config/mosquitto.conf && echo 'persistence true' >> /mosquitto/config/mosquitto.conf && echo 'persistence_location /mosquitto/data/' >> /mosquitto/config/mosquitto.conf && echo 'log_dest stdout' >> /mosquitto/config/mosquitto.conf && /usr/sbin/mosquitto -c /mosquitto/config/mosquitto.conf "
 
   api:
     build:
@@ -49,7 +42,7 @@ services:
       - API_URL=http://api:5000/lecturas
       - MQTT_BROKER=mqtt
       - MQTT_PORT=1883
-    restart: on-failure
+    restart: always
 
   dashboard:
     build:
@@ -64,7 +57,7 @@ services:
       - .env.docker
     environment:
       - API_BASE_URL=http://api:5000
-    restart: on-failure
+    restart: always
 
   mqtt_subscriber:
     build:
@@ -81,7 +74,7 @@ services:
       - MQTT_BROKER=mqtt
       - MQTT_PORT=1883
       - API_URL=http://api:5000/lecturas
-    restart: on-failure
+    restart: always
 
 volumes:
   postgres_data:
