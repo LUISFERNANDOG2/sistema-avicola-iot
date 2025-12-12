@@ -160,8 +160,45 @@ Para cada nueva lectura recibida del sensor:
 ### 5.3 Sistema de Throttling (Anti-Spam)
 Para evitar saturación de notificaciones...
 
-## 6. Despliegue e Instalación
-El proyecto incluye archivos `Dockerfile` para cada servicio. Para desplegar en producción:
-1.  Configurar variables de entorno en `.env`.
-2.  Ejecutar: `docker-compose up -d --build`.
-3.  Verificar logs: `docker-compose logs -f`.
+## 6. Despliegue Local en Raspberry Pi (Modo Offline)
+El sistema está optimizado para funcionar en una **Raspberry Pi 4 (o superior)** ubicada físicamente en la granja, permitiendo operación continua sin necesidad de internet.
+
+### 6.1 Requisitos Previos
+*   Raspberry Pi con **Raspberry Pi OS (64-bits)** instalado.
+*   Conexión de red local (Ethernet o WiFi creado por la misma RPi en modo Access Point).
+*   `git` y `docker` instalados.
+
+### 6.2 Instalación Paso a Paso
+1.  **Clonar el Repositorio en la RPi**:
+    ```bash
+    git clone https://github.com/LUISFERNANDOG2/sistema-avicola-iot.git
+    cd sistema-avicola-iot
+    ```
+
+2.  **Configurar Variables**:
+    Copie el archivo de ejemplo para producción:
+    ```bash
+    cp .env.example .env
+    ```
+    *Nota: En entorno local aislado, las contraseñas por defecto son seguras.*
+
+3.  **Iniciar el Sistema (Modo Raspberry)**:
+    Utilice el archivo de composición específico para arquitectura ARM (Raspberry Pi):
+    ```bash
+    docker-compose -f docker-compose.raspberry.yml up -d --build
+    ```
+    *(Este proceso puede tardar 10-15 minutos la primera vez mientras compila las imágenes)*
+
+4.  **Acceder al Dashboard**:
+    Si está conectado a la red de la granja:
+    *   IP de la Raspberry: `http://192.168.X.X:5001`
+    *   IP Local (si usa pantalla conectada): `http://localhost:5001`
+
+### 6.3 Configuración de "Punto de Acceso" (Access Point)
+Si no hay router en la granja, la Raspberry Pi puede generar su propia red WiFi para que los módulos ESP32 se conecten a ella.
+1.  Utilice scripts como `raspap` o configure `hostapd`.
+2.  Nombre de red recomendado: `GranjaAvicola_WiFi`.
+3.  Configure los módulos ESP32 con esa SSID y contraseña.
+
+## 7. Despliegue en Servidor Cloud (Opcional)
+Para despliegue en AWS/Azure...
