@@ -5,9 +5,6 @@ Este proyecto es una solución integral IoT (Internet of Things) diseñada para 
 ---
 
 ## 📸 Galería del Sistema
-<details>
-<summary><b>� Ver Interfaz de Usuario</b></summary>
-
 <br>
 
 **Panel de Control & Monitoreo**
@@ -28,8 +25,6 @@ Este proyecto es una solución integral IoT (Internet of Things) diseñada para 
   <img src="docs/screenshots/login.png" width="30%" alt="Login">
   <img src="docs/screenshots/EditarPerfil.png" width="30%" alt="Perfil">
 </p>
-
-</details>
 
 ---
 
