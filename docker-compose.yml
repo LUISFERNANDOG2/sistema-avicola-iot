@@ -1,8 +1,14 @@
+networks:
+  avicola-network:
+    driver: bridge
+
 services:
   db:
     image: postgres:15-alpine
     platform: linux/arm64/v8
     pull_policy: never
+    networks:
+      - avicola-network
     environment:
       POSTGRES_USER: avicola_user
       POSTGRES_PASSWORD: avicola123321
@@ -22,6 +28,8 @@ services:
     image: eclipse-mosquitto:2
     platform: linux/arm64/v8
     pull_policy: never
+    networks:
+      - avicola-network
     ports:
       - "1883:1883"
     command: >
@@ -41,6 +49,8 @@ services:
       platforms:
         - linux/amd64
     pull_policy: if_missing
+    networks:
+      - avicola-network
     ports:
       - "5000:5000"
     depends_on:
@@ -63,6 +73,8 @@ services:
       platforms:
         - linux/amd64
     pull_policy: if_missing
+    networks:
+      - avicola-network
     ports:
       - "5001:5001"
     depends_on:
@@ -81,6 +93,8 @@ services:
       platforms:
         - linux/amd64
     pull_policy: if_missing
+    networks:
+      - avicola-network
     depends_on:
       db:
         condition: service_healthy

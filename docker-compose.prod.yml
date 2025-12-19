@@ -1,0 +1,151 @@
+version: '3.8'
+
+networks:
+  avicola-network:
+    driver: bridge
+
+services:
+  db:
+    image: postgres:15-alpine
+    pull_policy: if_missing
+    networks:
+      - avicola-network
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backups:/backups
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  mqtt:
+    image: eclipse-mosquitto:2
+    pull_policy: if_missing
+    networks:
+      - avicola-network
+    ports:
+      - "1883:1883"
+    volumes:
+      - mosquitto_data:/mosquitto/data
+      - mosquitto_logs:/mosquitto/log
+      - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+    restart: unless-stopped
+    command: >
+      sh -c "
+      echo 'listener 1883' > /mosquitto/config/mosquitto.conf &&
+      echo 'allow_anonymous false' >> /mosquitto/config/mosquitto.conf &&
+      echo 'password_file /mosquitto/config/passwd' >> /mosquitto/config/mosquitto.conf &&
+      echo 'persistence true' >> /mosquitto/config/mosquitto.conf &&
+      echo 'persistence_location /mosquitto/data/' >> /mosquitto/config/mosquitto.conf &&
+      echo 'log_dest file /mosquitto/log/mosquitto.log' >> /mosquitto/config/mosquitto.conf &&
+      echo 'log_type error' >> /mosquitto/config/mosquitto.conf &&
+      echo 'log_type warning' >> /mosquitto/config/mosquitto.conf &&
+      echo 'log_type notice' >> /mosquitto/config/mosquitto.conf &&
+      echo 'log_type information' >> /mosquitto/config/mosquitto.conf &&
+      /usr/sbin/mosquitto -c /mosquitto/config/mosquitto.conf
+      "
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    pull_policy: if_missing
+    networks:
+      - avicola-network
+    ports:
+      - "5000:5000"
+    depends_on:
+      db:
+        condition: service_healthy
+      mqtt:
+        condition: service_started
+    env_file:
+      - .env.production
+    environment:
+      - API_URL=${API_URL}
+      - MQTT_BROKER=mqtt
+      - MQTT_PORT=1883
+      - MQTT_USERNAME=${MQTT_USERNAME}
+      - MQTT_PASSWORD=${MQTT_PASSWORD}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile.dashboard
+    pull_policy: if_missing
+    networks:
+      - avicola-network
+    ports:
+      - "5001:5001"
+    depends_on:
+      api:
+        condition: service_started
+    env_file:
+      - .env.production
+    environment:
+      - API_BASE_URL=${API_BASE_URL}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  mqtt_subscriber:
+    build:
+      context: .
+      dockerfile: Dockerfile.mqtt
+    pull_policy: if_missing
+    networks:
+      - avicola-network
+    depends_on:
+      db:
+        condition: service_healthy
+      mqtt:
+        condition: service_started
+    env_file:
+      - .env.production
+    environment:
+      - MQTT_BROKER=mqtt
+      - MQTT_PORT=1883
+      - MQTT_USERNAME=${MQTT_USERNAME}
+      - MQTT_PASSWORD=${MQTT_PASSWORD}
+      - API_URL=${API_URL}
+    restart: unless-stopped
+
+  # Nginx reverse proxy for production
+  nginx:
+    image: nginx:alpine
+    pull_policy: if_missing
+    networks:
+      - avicola-network
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - api
+      - dashboard
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  mosquitto_data:
+  mosquitto_logs:

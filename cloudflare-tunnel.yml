@@ -1,0 +1,18 @@
+tunnel: your-tunnel-id-here
+credentials-file: /home/user/.cloudflared/your-tunnel-id-here.json
+
+ingress:
+  # Dashboard - Main application
+  - hostname: your-domain.com
+    service: http://localhost:80
+  
+  # API subdomain
+  - hostname: api.your-domain.com
+    service: http://localhost:80
+  
+  # MQTT WebSocket (if needed for future web clients)
+  - hostname: mqtt.your-domain.com
+    service: tcp://localhost:1883
+  
+  # Catch-all for any other requests
+  - service: http_status:404
