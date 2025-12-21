@@ -32,10 +32,10 @@ services:
       - avicola-network
     ports:
       - "1883:1883"
-    volumes:
-      - mosquitto_data:/mosquitto/data
-      - mosquitto_logs:/mosquitto/log
-      - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+      #volumes:
+      #- mosquitto_data:/mosquitto/data
+      #- mosquitto_logs:/mosquitto/log
+      #- ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
     restart: unless-stopped
     command: >
       sh -c "

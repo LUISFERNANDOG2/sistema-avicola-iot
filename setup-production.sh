@@ -4,7 +4,7 @@
 echo "=== Sistema Avícola IoT - Production Setup ==="
 
 # Check if running in WSL2
-if ! grep -q Microsoft /proc/version; then
+if ! grep -q microsoft /proc/version; then
     echo "This script is designed to run in WSL2"
     exit 1
 fi
