@@ -1,0 +1,7 @@
+tunnel: mqtt-tunnel
+credentials-file: ~/.cloudflared/mqtt-tunnel.json
+
+ingress:
+  - hostname: port-applicants-bookstore-pressing.trycloudflare.com
+    service: tcp://localhost:1883
+  - service: http_status:404

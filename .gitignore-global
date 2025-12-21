@@ -1,0 +1,7 @@
+# Google Drive automatic files
+desktop.ini
+.DS_Store
+Thumbs.db
+
+# Windows system files
+*.lnk

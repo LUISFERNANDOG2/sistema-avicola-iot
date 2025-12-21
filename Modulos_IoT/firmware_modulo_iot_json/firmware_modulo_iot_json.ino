@@ -29,11 +29,11 @@ const char* password = "localwifi123321";
 //const char* ssid = "Posgrado";
 //const char* password = "PGR4d0%2024";
 
-// Configuración MQTT
-//const char* mqtt_server = "10.112.18.29";
-//const char* mqtt_server = "192.168.0.101";
-const char* mqtt_server = "192.168.0.100";
-//const char* mqtt_server = "172.21.105.196";
+// Configuración MQTT local
+//const char* mqtt_server = "192.168.0.100";
+
+//Mqtt server cloudflare - TCP directo (sin https://)
+const char* mqtt_server = "port-applicants-bookstore-pressing.trycloudflare.com";
 
 // Nuevo topic único para JSON
 const char* topic_data = "sensor/modulo1/data";
@@ -159,9 +159,6 @@ String createSensorJSON() {
     // Crear documento JSON
     StaticJsonDocument<200> doc;
     
-    // Timestamp
-    // doc["timestamp"] = millis();
-    // doc["module"] = "M2";
     
     // Variables para validación
     bool hasValidData = false;
