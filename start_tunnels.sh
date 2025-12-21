@@ -45,7 +45,10 @@ fi
 echo ""
 
 if [ -z "$MQTT_URL" ]; then
-    echo "❌ MQTT Tunnel failed to start. Check logs."
+    echo "❌ MQTT Tunnel failed to start. Debugging info:"
+    echo "--- BEGIN LOG (/tmp/tunnel_mqtt.log) ---"
+    cat /tmp/tunnel_mqtt.log
+    echo "--- END LOG ---"
 else
     echo "✅ MQTT BROKER URL:   $MQTT_URL"
     echo "   -> Use this in your Firmware (remove 'tcp://' prefix)"
