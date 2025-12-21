@@ -30,7 +30,15 @@ fi
 
 # Create necessary directories
 echo "Creating directories..."
-mkdir -p nginx/ssl backups mosquitto
+mkdir -p nginx/ssl backups mosquitto/config mosquitto/data mosquitto/log
+
+# Generate MQTT Password (if missing)
+if [ ! -f ./mosquitto/config/passwd ]; then
+    echo "⚠️ MQTT Password file not found!"
+    echo "Please run: ./generate_mqtt_pass.sh"
+    # We don't force it here to avoid interactive prompt blocking automation, 
+    # but we warn the user.
+fi
 
 # Generate self-signed SSL certificate (Cloudflare will override this)
 echo "Generating SSL certificate..."

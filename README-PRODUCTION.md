@@ -67,184 +67,78 @@ docker-compose -f docker-compose.prod.yml ps
 docker-compose -f docker-compose.prod.yml logs -f
 ```
 
-## Step 4: Setup Cloudflare Tunnel
+## Step 4: Configure Cloudflare Tunnel (Dual Track)
 
-### 1. Create Cloudflare Account
-- Sign up at https://cloudflare.com
-- Add your domain (or use Cloudflare's provided subdomain)
+Choose the track that matches your current situation:
 
-### 2. Create Tunnel
+### 🅰️ TRACK 1: Quick Start (No Domain)
+*Use this for immediate testing using free, random addresses.*
+
+1.  **Start the Tunnels**:
+    Run the included script to start both HTTP (Dashboard) and TCP (MQTT) tunnels:
+    ```bash
+    ./start_tunnels.sh
+    ```
+
+2.  **Copy the Addresses**:
+    The script will output two important addresses.
+    *   **Dashboard URL**: `https://random-name.trycloudflare.com` -> Open this in your browser.
+    *   **MQTT URL**: `tcp://random-name.trycloudflare.com:12345` -> **IMPORTANT**: See `FIRMWARE_GUIDE.md` to configure your ESP32 with this.
+
+    > **Note**: These addresses CHANGE every time you restart the script.
+
+---
+
+### 🅱️ TRACK 2: Production (With Domain)
+*Use this for permanent installation (Recommended).*
+
+1.  **Configure `docker-compose.domain.yml`**:
+    *   This file is pre-configured to use a managed Cloudflare Tunnel via Docker.
+    *   You need a `TUNNEL_TOKEN` from Cloudflare.
+
+2.  **Get Tunnel Token**:
+    *   Go to [Cloudflare Zero Trust Dashboard](https://one.dash.cloudflare.com/).
+    *   Navigate to **Networks > Tunnels**.
+    *   Create a tunnel (select "Docker" environment) and copy the **Token**.
+
+3.  **Configure Public Hostnames** (In Cloudflare Dashboard):
+    *   **Dashboard**: `your-domain.com` -> `http://nginx:80`
+    *   **API**: `api.your-domain.com` -> `http://nginx:80`
+    *   **MQTT**: `mqtt.your-domain.com` -> `tcp://mqtt:1883`
+
+4.  **Deploy**:
+    Update `.env.production` with your token:
+    ```bash
+    TUNNEL_TOKEN=your_token_here
+    ```
+    Start the production stack:
+    ```bash
+    docker-compose -f docker-compose.domain.yml up -d
+    ```
+
+## Step 5: Firmware Configuration
+
+**CRITICAL STEP**: Your ESP32 modules need to know where to send data.
+Please read **[FIRMWARE_GUIDE.md](FIRMWARE_GUIDE.md)** for detailed instructions on how to configure your devices for either Track 1 or Track 2.
+
+## Security & Maintenance
+
+### Firewall
+*   Ensure Windows Firewall allows Docker traffic.
+*   No external ports need to be opened on your router (Cloudflare Tunnel handles NAT traversal).
+
+### Backup
 ```bash
-# Login to Cloudflare
-cloudflared tunnel login
-
-# Create tunnel
-cloudflared tunnel create avicola-iot
-
-# Note the tunnel UUID and copy credentials file
-
-# Configure tunnel
-cp cloudflare-tunnel.yml ~/.cloudflared/config.yml
-# Edit the file with your tunnel UUID and domain
-```
-
-### 3. Configure DNS
-```bash
-# Create DNS records
-cloudflared tunnel route dns avicola-iot your-domain.com
-cloudflared tunnel route dns avicola-iot api.your-domain.com
-```
-
-### 4. Start Tunnel
-```bash
-# Test tunnel
-cloudflared tunnel run avicola-iot
-
-# Install as service (Ubuntu)
-sudo systemctl enable cloudflared
-sudo systemctl start cloudflared
-```
-
-## Step 5: Access Your Application
-
-### Web Access
-- **Dashboard**: `https://your-domain.com`
-- **API**: `https://your-domain.com/api/`
-
-### Local Development
-- **Dashboard**: `http://localhost:5001`
-- **API**: `http://localhost:5000`
-
-## Security Considerations
-
-### Firewall Configuration
-```bash
-# Allow necessary ports through Windows Firewall
-# Port 80/443 for web traffic
-# Port 1883 for MQTT (if external access needed)
-```
-
-### SSL/TLS
-- Cloudflare provides free SSL certificates
-- Internal Docker communication uses HTTP
-- Consider upgrading to HTTPS internally for sensitive data
-
-### Backup Strategy
-```bash
-# Database backup script
-docker exec sistema-avicola-iot-db-1 pg_dump -U avicola_prod_user avicola_prod_db > backup_$(date +%Y%m%d).sql
-
-# Automated backup (add to crontab)
-0 2 * * * /path/to/backup-script.sh
-```
-
-## Monitoring and Maintenance
-
-### Health Checks
-```bash
-# Check service health
-curl http://localhost:5000/health
-curl http://localhost:5001/health
-
-# Container status
-docker stats
-```
-
-### Log Management
-```bash
-# View logs
-docker-compose -f docker-compose.prod.yml logs api
-docker-compose -f docker-compose.prod.yml logs dashboard
-docker-compose -f docker-compose.prod.yml logs db
-```
-
-### Updates
-```bash
-# Update application
-git pull origin main
-docker-compose -f docker-compose.prod.yml build
-docker-compose -f docker-compose.prod.yml up -d
+# Database backup
+docker exec $(docker-compose -f docker-compose.prod.yml ps -q db) pg_dump -U avicola_user avicola_db > backup_$(date +%F).sql
 ```
 
 ## Troubleshooting
 
-### Common Issues
+1.  **Mqtt Connection Refused**:
+    *   Did you generate the password? Run: `./generate_mqtt_pass.sh`
+    *   Did you update the firmware with the correct User/Pass?
 
-1. **Port conflicts**
-   - Stop other services using ports 80, 443, 5000, 5001, 1883
-   - Check with `netstat -tulpn`
-
-2. **Docker permission issues**
-   - Add user to docker group: `sudo usermod -aG docker $USER`
-   - Restart WSL2: `wsl --shutdown`
-
-3. **Cloudflare tunnel not working**
-   - Verify tunnel configuration
-   - Check DNS propagation
-   - Review Cloudflare dashboard logs
-
-4. **Database connection issues**
-   - Verify environment variables
-   - Check database container health
-   - Review database logs
-
-### Performance Optimization
-
-1. **Database**
-   - Regular VACUUM operations
-   - Monitor connection pool
-   - Consider read replicas for scaling
-
-2. **Application**
-   - Enable Redis caching (future enhancement)
-   - Monitor memory usage
-   - Optimize database queries
-
-3. **Network**
-   - Use Cloudflare caching
-   - Enable Gzip compression
-   - Monitor bandwidth usage
-
-## Scaling Considerations
-
-### When to Scale Up
-- High CPU usage (>80% sustained)
-- Memory pressure (>90% usage)
-- Database connection limits reached
-- Network bandwidth saturation
-
-### Scaling Options
-1. **Vertical Scaling**: Increase laptop resources
-2. **Horizontal Scaling**: Add more servers
-3. **Cloud Migration**: Move to cloud provider
-
-## Cost Analysis
-
-### Free Tier Limitations
-- Cloudflare: 100k requests/month free
-- Bandwidth considerations
-- Database storage limits
-
-### Paid Features
-- Cloudflare Pro: Enhanced security features
-- Additional domains and subdomains
-- Advanced analytics and monitoring
-
-## Support and Documentation
-
-### Resources
-- [Docker Documentation](https://docs.docker.com/)
-- [Cloudflare Tunnel Guide](https://developers.cloudflare.com/cloudflare-one/connections/connect-apps/)
-- [WSL2 Documentation](https://docs.microsoft.com/en-us/windows/wsl/)
-
-### Emergency Procedures
-1. **Service Down**: Check Docker status, restart services
-2. **Data Loss**: Restore from database backups
-3. **Security Incident**: Change passwords, review logs
-4. **Performance Issues**: Check resource usage, scale if needed
-
-## Conclusion
-
-This setup provides a robust, secure, and globally accessible deployment for your Sistema Avícola IoT project. The combination of WSL2, Docker, and Cloudflare Tunnel offers enterprise-grade features while maintaining simplicity and cost-effectiveness.
-
-Regular monitoring, updates, and backups will ensure reliable operation for your IoT monitoring system.
+2.  **Tunnel not connecting**:
+    *   Check `docker-compose logs tunnel` (Track 2).
+    *   Check terminal output of `start_tunnels.sh` (Track 1).

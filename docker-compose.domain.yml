@@ -38,7 +38,6 @@ services:
       - ./mosquitto/config/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
       - ./mosquitto/config/passwd:/mosquitto/config/passwd:ro
     restart: unless-stopped
-    # Command removed to allow using the config file
 
   api:
     build:
@@ -116,7 +115,7 @@ services:
       - API_URL=${API_URL}
     restart: unless-stopped
 
-  # Nginx reverse proxy for production
+  # Nginx reverse proxy for domain production
   nginx:
     image: nginx:alpine
     pull_policy: if_missing
@@ -131,6 +130,18 @@ services:
     depends_on:
       - api
       - dashboard
+    restart: unless-stopped
+
+  # Cloudflared Tunnel (Managed)
+  # IMPORTANT: When you have a domain, configure your tunnel in Cloudflare Dashboard
+  # and paste the token in .env.production as TUNNEL_TOKEN
+  tunnel:
+    image: cloudflare/cloudflared:latest
+    networks:
+      - avicola-network
+    command: tunnel run
+    environment:
+      - TUNNEL_TOKEN=${TUNNEL_TOKEN}
     restart: unless-stopped
 
 volumes:
