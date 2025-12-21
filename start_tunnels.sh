@@ -23,8 +23,33 @@ echo "🚀 Starting TCP Tunnel (MQTT)..."
 cloudflared tunnel --url tcp://localhost:1883 > /tmp/tunnel_mqtt.log 2>&1 &
 MQTT_PID=$!
 
-echo "Waiting for tunnels to initialize (5s)..."
-sleep 5
+# Function to wait for URL in log file
+wait_for_url() {
+    local logfile=$1
+    local type=$2
+    local count=0
+    local ret=""
+    
+    echo "⏳ Waiting for $type Tunnel (max 30s)..."
+    while [ $count -lt 30 ]; do
+        if [ "$type" == "HTTP" ]; then
+            ret=$(grep -o 'https://.*\.trycloudflare\.com' "$logfile" | head -n 1)
+        else
+            ret=$(grep -o 'tcp://.*\.trycloudflare\.com:[0-9]*' "$logfile" | head -n 1)
+        fi
+        
+        if [ -n "$ret" ]; then
+            return 0
+        fi
+        sleep 1
+        ((count++))
+    done
+    return 1
+}
+
+# Wait for tunnels
+wait_for_url "/tmp/tunnel_http.log" "HTTP"
+wait_for_url "/tmp/tunnel_mqtt.log" "TCP"
 
 echo ""
 echo "==================================================="
@@ -36,7 +61,10 @@ HTTP_URL=$(grep -o 'https://.*\.trycloudflare\.com' /tmp/tunnel_http.log | head 
 MQTT_URL=$(grep -o 'tcp://.*\.trycloudflare\.com:[0-9]*' /tmp/tunnel_mqtt.log | head -n 1)
 
 if [ -z "$HTTP_URL" ]; then
-    echo "❌ HTTP Tunnel failed to start. Check logs."
+    echo "❌ HTTP Tunnel failed to start. Debugging info:"
+    echo "--- BEGIN LOG (/tmp/tunnel_http.log) ---"
+    cat /tmp/tunnel_http.log
+    echo "--- END LOG ---"
 else
     echo "✅ DASHBOARD/API URL: $HTTP_URL"
     echo "   -> Access via Browser"
