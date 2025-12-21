@@ -13,14 +13,21 @@ if ! command -v cloudflared &> /dev/null; then
     exit 1
 fi
 
-echo "🚀 Starting HTTP Tunnel (Dashboard)..."
-# Start HTTP tunnel in background and log to temp file
+# Check if ngrok is authenticated
+if ! ngrok config check &> /dev/null; then
+    echo "❌ Error: Ngrok is not configured!"
+    echo "   Please run: ngrok config add-authtoken <YOUR_TOKEN>"
+    echo "   (Sign up at https://dashboard.ngrok.com to get one for free)"
+    exit 1
+fi
+
+echo "🚀 Starting HTTP Tunnel (Cloudflare)..."
 cloudflared tunnel --url http://localhost:80 > /tmp/tunnel_http.log 2>&1 &
 HTTP_PID=$!
 
-echo "🚀 Starting TCP Tunnel (MQTT)..."
-# Start TCP tunnel in background
-cloudflared tunnel --url tcp://localhost:1883 > /tmp/tunnel_mqtt.log 2>&1 &
+echo "🚀 Starting MQTT Tunnel (Ngrok TCP)..."
+# Ngrok tcp 1883
+ngrok tcp 1883 --log=stdout > /tmp/tunnel_mqtt.log 2>&1 &
 MQTT_PID=$!
 
 # Function to wait for URL in log file
@@ -35,7 +42,8 @@ wait_for_url() {
         if [ "$type" == "HTTP" ]; then
             ret=$(grep -o 'https://.*\.trycloudflare\.com' "$logfile" | head -n 1)
         else
-            ret=$(grep -o 'tcp://.*\.trycloudflare\.com:[0-9]*' "$logfile" | head -n 1)
+            # Ngrok URL format: tcp://X.tcp.ngrok.io:12345
+            ret=$(grep -o 'tcp://.*\.ngrok\.io:[0-9]*' "$logfile" | head -n 1)
         fi
         
         if [ -n "$ret" ]; then
@@ -49,7 +57,7 @@ wait_for_url() {
 
 # Wait for tunnels
 wait_for_url "/tmp/tunnel_http.log" "HTTP"
-wait_for_url "/tmp/tunnel_mqtt.log" "TCP"
+wait_for_url "/tmp/tunnel_mqtt.log" "MQTT (Ngrok)"
 
 echo ""
 echo "==================================================="
@@ -58,7 +66,7 @@ echo "==================================================="
 
 # Extract URLs from logs
 HTTP_URL=$(grep -o 'https://.*\.trycloudflare\.com' /tmp/tunnel_http.log | head -n 1)
-MQTT_URL=$(grep -o 'tcp://.*\.trycloudflare\.com:[0-9]*' /tmp/tunnel_mqtt.log | head -n 1)
+MQTT_URL=$(grep -o 'tcp://.*\.ngrok\.io:[0-9]*' /tmp/tunnel_mqtt.log | head -n 1)
 
 if [ -z "$HTTP_URL" ]; then
     echo "❌ HTTP Tunnel failed to start. Debugging info:"
@@ -73,14 +81,15 @@ fi
 echo ""
 
 if [ -z "$MQTT_URL" ]; then
-    echo "❌ MQTT Tunnel failed to start. Debugging info:"
+    echo "❌ MQTT Tunnel failed to start (Ngrok). Debugging info:"
     echo "--- BEGIN LOG (/tmp/tunnel_mqtt.log) ---"
     cat /tmp/tunnel_mqtt.log
     echo "--- END LOG ---"
 else
     echo "✅ MQTT BROKER URL:   $MQTT_URL"
-    echo "   -> Use this in your Firmware (remove 'tcp://' prefix)"
-    echo "   -> Port is the number after the colon (:)"
+    echo "   -> Copy this to your ESP32 Firmware!"
+    echo "   -> Host: (Remove tcp:// and port) e.g. 0.tcp.ngrok.io"
+    echo "   -> Port: The number at the end e.g. 12345"
 fi
 
 echo "==================================================="

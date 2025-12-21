@@ -71,19 +71,31 @@ docker-compose -f docker-compose.prod.yml logs -f
 
 Choose the track that matches your current situation:
 
-### 🅰️ TRACK 1: Quick Start (No Domain)
-*Use this for immediate testing using free, random addresses.*
+### 🅰️ TRACK### 🚀 Quick Start (No Domain - Hybrid Mode)
+**Best for**: Testing remotely immediately without buying a domain.
+**Technology**: Cloudflare (Web) + Ngrok (MQTT).
 
-1.  **Start the Tunnels**:
-    Run the included script to start both HTTP (Dashboard) and TCP (MQTT) tunnels:
+1.  **Install dependencies**:
+    ```bash
+    ./setup-production.sh
+    ```
+    *(If it asks for an Ngrok Token, sign up at [ngrok.com](https://dashboard.ngrok.com) and verify it).*
+
+2.  **Generate MQTT Password**:
+    ```bash
+    ./generate_mqtt_pass.sh
+    ```
+
+3.  **Start the Tunnels**:
     ```bash
     ./start_tunnels.sh
     ```
+    This will give you two URLs:
+    -   **Web**: `https://random-name.trycloudflare.com` (For your browser)
+    -   **MQTT**: `0.tcp.ngrok.io:12345` (For your ESP32)
 
-2.  **Copy the Addresses**:
-    The script will output two important addresses.
-    *   **Dashboard URL**: `https://random-name.trycloudflare.com` -> Open this in your browser.
-    *   **MQTT URL**: `tcp://random-name.trycloudflare.com:12345` -> **IMPORTANT**: See `FIRMWARE_GUIDE.md` to configure your ESP32 with this.
+4.  **Update Firmware**:
+    -   Open `FIRMWARE_GUIDE.md` for instructions on how to paste the **Ngrok** address into your ESP32 code.
 
     > **Note**: These addresses CHANGE every time you restart the script.
 

@@ -58,8 +58,10 @@ PubSubClient client(espClient);
 // Variables para debugging
 unsigned long lastDebugTime = 0;
 const int DEBUG_INTERVAL = 10000; // Debug cada 10 segundos
-unsigned long lastSendTime = 0;
-const int SEND_INTERVAL = 1000;   // Envío cada 1 segundo
+unsigned long lastSend// INTERVALO DE ENVÍO DE DATOS - OPTIMIZADO PARA NGROK
+// 5000ms = 5 segundos
+// Esto reduce el consumo de datos a ~240MB/mes para 2 módulos, evitando exceder el límite de 1GB de Ngrok.
+const int SEND_INTERVAL = 5000;
 
 // Contadores para diagnóstico
 int successfulReads = 0;

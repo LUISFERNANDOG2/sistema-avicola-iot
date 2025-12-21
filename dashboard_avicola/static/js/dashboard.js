@@ -819,7 +819,8 @@ function createHistoricalStatus() {
 document.addEventListener('DOMContentLoaded', initializeDashboard);
 
 // Live data cada 1 segundo
-setInterval(updateLiveData, 1000);
+// La actualización coincide con el firmware (5s) para ahorrar recursos
+setInterval(updateLiveData, 5000); // 5000ms = 5 segundos
 
 // Histórico cada 10 segundos
 setInterval(() => {

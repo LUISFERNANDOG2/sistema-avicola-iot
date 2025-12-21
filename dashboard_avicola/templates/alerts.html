@@ -443,6 +443,7 @@
     document.getElementById('searchInput').addEventListener('input', filterAlerts);
 
     // Auto-refresh
+    // Poll for alerts every 5 seconds (matches firmware)
     setInterval(() => {
       if (document.getElementById('autoRefresh').checked) {
         loadAlerts();
