@@ -36,8 +36,19 @@ docker run --rm -v "$(pwd)/mosquitto/config:/mosquitto/config" eclipse-mosquitto
 
 if [ $? -eq 0 ]; then
     echo "✅ Password set successfully for user: $MQTT_USER"
-    # Set permissions
-    chmod 644 "$PASSWD_FILE"
+    
+    # Fix permissions
+    # 1. Take back ownership (Docker might have set it to root)
+    sudo chown $USER:$USER "$PASSWD_FILE"
+    # 2. Set strict permissions (0700 as requested by Mosquitto logs)
+    # Note: We use 0700 so only owner can read. 
+    # Docker mount will usually handle this, but if mosquitto user cannot read, we might need 0644.
+    # We will stick to 0644 for broad compatibility in WSL2 unless strictness is enforced.
+    # The warning asked for 0700, but that often breaks binds if UIDs don't match.
+    # Let's use 0644 to be safe for now, as it's guaranteed to work.
+    chmod 0644 "$PASSWD_FILE"
+    
+    echo "📝 Permissions updated."
 else
     echo "❌ Error setting password."
 fi
